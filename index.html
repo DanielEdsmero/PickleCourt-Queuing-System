@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pickleball Court Matchmaker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Queue + court assignment + daily roster</p>
+        <h1>Pickleball Court Matchmaker</h1>
+        <p class="subtitle">
+          Add players once for the day, search them anytime, re-queue them fast, manually mix levels on courts, or randomize 4 players from the same level.
+        </p>
+      </div>
+      <div class="hero-badge">
+        <span id="totalPlayers">0</span>
+        <small>Players waiting</small>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel controls-panel">
+        <h2>Add Player to Queue</h2>
+        <form id="playerForm" class="player-form">
+          <label>
+            <span>Player Name</span>
+            <input id="playerName" type="text" maxlength="24" placeholder="Enter player name" required />
+          </label>
+
+          <label>
+            <span>Skill Level</span>
+            <select id="skillLevel" required>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </label>
+
+          <button type="submit" class="primary-btn">Add to Queue</button>
+        </form>
+
+        <div class="action-group">
+          <h3>Randomize Match</h3>
+          <label>
+            <span>Choose level</span>
+            <select id="matchLevel">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </label>
+          <div class="button-row wrap-row">
+            <button id="randomizeBtn" class="secondary-btn" type="button">Randomize 4 Same-Level Players</button>
+            <button id="autoRandomizeBtn" class="ghost-btn" type="button">Auto Pick Available Level</button>
+          </div>
+        </div>
+
+        <div class="action-group small-gap">
+          <h3>Manual Court Assignment</h3>
+          <label>
+            <span>Send selected queue players to</span>
+            <select id="manualCourtSelect">
+              <option value="1">Court 1</option>
+              <option value="2">Court 2</option>
+              <option value="3">Court 3</option>
+              <option value="4">Court 4</option>
+            </select>
+          </label>
+          <button id="assignSelectedBtn" class="secondary-btn" type="button">Add Selected Players to Court</button>
+          <p class="mini-note">Manual add and drag-and-drop can mix Beginner, Intermediate, and Advanced players on the same court.</p>
+        </div>
+
+        <div class="action-group small-gap">
+          <h3>Day Controls</h3>
+          <div class="button-row wrap-row">
+            <button data-court="1" class="finish-btn" type="button">Finish Court 1</button>
+            <button data-court="2" class="finish-btn" type="button">Finish Court 2</button>
+            <button data-court="3" class="finish-btn" type="button">Finish Court 3</button>
+            <button data-court="4" class="finish-btn" type="button">Finish Court 4</button>
+            <button id="clearAllBtn" class="danger-btn" type="button">Clear All Player List</button>
+          </div>
+        </div>
+
+        <div id="statusMessage" class="status-message">Ready.</div>
+      </section>
+
+      <section class="panel queue-panel">
+        <div class="queue-header">
+          <div>
+            <h2>Queue System</h2>
+            <p>Click players to select them, or drag them into any empty court square.</p>
+          </div>
+        </div>
+
+        <div class="queue-columns">
+          <div class="queue-box beginner">
+            <div class="queue-title-row">
+              <h3>Beginner</h3>
+              <span id="count-Beginner" class="count-pill">0</span>
+            </div>
+            <ul id="queue-Beginner" class="queue-list"></ul>
+          </div>
+
+          <div class="queue-box intermediate">
+            <div class="queue-title-row">
+              <h3>Intermediate</h3>
+              <span id="count-Intermediate" class="count-pill">0</span>
+            </div>
+            <ul id="queue-Intermediate" class="queue-list"></ul>
+          </div>
+
+          <div class="queue-box advanced">
+            <div class="queue-title-row">
+              <h3>Advanced</h3>
+              <span id="count-Advanced" class="count-pill">0</span>
+            </div>
+            <ul id="queue-Advanced" class="queue-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel courts-panel">
+        <div class="courts-header">
+          <div>
+            <h2>Courts</h2>
+            <p>Randomize uses same-level players only. Manual add can be mixed.</p>
+          </div>
+        </div>
+
+        <div class="courts-grid">
+          <div class="court-card">
+            <div class="court-topline">
+              <div>
+                <h3>Court 1</h3>
+                <div class="court-meta-row">
+                  <span id="court1Level" class="court-level">Open</span>
+                  <span id="court1Hours" class="court-hours">Reservation: 0h</span>
+                </div>
+              </div>
+              <button class="reserve-btn" data-reserve-court="1" type="button">+1 Hour</button>
+            </div>
+            <div class="court-board" id="court1">
+              <div class="court-slot" data-court="1" data-slot="0">Waiting</div>
+              <div class="court-slot" data-court="1" data-slot="1">Waiting</div>
+              <div class="court-slot" data-court="1" data-slot="2">Waiting</div>
+              <div class="court-slot" data-court="1" data-slot="3">Waiting</div>
+            </div>
+          </div>
+
+          <div class="court-card">
+            <div class="court-topline">
+              <div>
+                <h3>Court 2</h3>
+                <div class="court-meta-row">
+                  <span id="court2Level" class="court-level">Open</span>
+                  <span id="court2Hours" class="court-hours">Reservation: 0h</span>
+                </div>
+              </div>
+              <button class="reserve-btn" data-reserve-court="2" type="button">+1 Hour</button>
+            </div>
+            <div class="court-board" id="court2">
+              <div class="court-slot" data-court="2" data-slot="0">Waiting</div>
+              <div class="court-slot" data-court="2" data-slot="1">Waiting</div>
+              <div class="court-slot" data-court="2" data-slot="2">Waiting</div>
+              <div class="court-slot" data-court="2" data-slot="3">Waiting</div>
+            </div>
+          </div>
+
+          <div class="court-card">
+            <div class="court-topline">
+              <div>
+                <h3>Court 3</h3>
+                <div class="court-meta-row">
+                  <span id="court3Level" class="court-level">Open</span>
+                  <span id="court3Hours" class="court-hours">Reservation: 0h</span>
+                </div>
+              </div>
+              <button class="reserve-btn" data-reserve-court="3" type="button">+1 Hour</button>
+            </div>
+            <div class="court-board" id="court3">
+              <div class="court-slot" data-court="3" data-slot="0">Waiting</div>
+              <div class="court-slot" data-court="3" data-slot="1">Waiting</div>
+              <div class="court-slot" data-court="3" data-slot="2">Waiting</div>
+              <div class="court-slot" data-court="3" data-slot="3">Waiting</div>
+            </div>
+          </div>
+
+          <div class="court-card">
+            <div class="court-topline">
+              <div>
+                <h3>Court 4</h3>
+                <div class="court-meta-row">
+                  <span id="court4Level" class="court-level">Open</span>
+                  <span id="court4Hours" class="court-hours">Reservation: 0h</span>
+                </div>
+              </div>
+              <button class="reserve-btn" data-reserve-court="4" type="button">+1 Hour</button>
+            </div>
+            <div class="court-board" id="court4">
+              <div class="court-slot" data-court="4" data-slot="0">Waiting</div>
+              <div class="court-slot" data-court="4" data-slot="1">Waiting</div>
+              <div class="court-slot" data-court="4" data-slot="2">Waiting</div>
+              <div class="court-slot" data-court="4" data-slot="3">Waiting</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel roster-panel">
+        <div class="roster-topline">
+          <div>
+            <h2>Daily Player List</h2>
+            <p>Everyone added for the day stays here. Search them and queue them again fast.</p>
+          </div>
+          <div class="roster-tools">
+            <input id="rosterSearch" type="text" placeholder="Search player name" />
+          </div>
+        </div>
+        <div id="dailyRoster" class="daily-roster"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

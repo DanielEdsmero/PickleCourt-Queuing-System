@@ -9,16 +9,26 @@
   --blue: #1d4ed8;
   --amber: #f59e0b;
   --red: #ef4444;
-  --shadow: 0 16px 40px rgba(13, 39, 94, 0.12);
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  --radius-sm: 16px;
+  --radius-md: 20px;
+  --radius-lg: 24px;
+  --motion-base: 180ms cubic-bezier(0.2, 0.65, 0.3, 1);
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(180deg, #ffffff 0%, #eaf2ff 100%);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
   color: var(--text);
+}
+
+h1, h2, h3 {
+  color: #f8fbff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .app-shell {
@@ -47,6 +57,8 @@ body {
 .hero h1 {
   margin: 0;
   font-size: clamp(30px, 4vw, 46px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
 .subtitle {
@@ -58,23 +70,28 @@ body {
 
 .hero-badge {
   min-width: 180px;
-  background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
-  color: #f8fbff;
+  background: linear-gradient(145deg, #1e40af 0%, #2563eb 45%, #0ea5e9 100%);
   padding: 22px;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   text-align: center;
   box-shadow: var(--shadow);
+  border: 1px solid rgba(186, 230, 253, 0.36);
 }
 
 .hero-badge span {
   display: block;
-  font-size: 38px;
-  font-weight: 800;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-shadow: 0 4px 12px rgba(15, 23, 42, 0.32);
 }
 
 .hero-badge small {
   display: block;
-  margin-top: 6px;
+  margin-top: 8px;
+  line-height: 1.3;
+  color: rgba(239, 246, 255, 0.9);
 }
 
 .layout {
@@ -102,10 +119,10 @@ body {
 }
 
 .panel {
-  background: var(--panel);
-  border: 1px solid rgba(30, 64, 175, 0.16);
-  border-radius: 24px;
-  box-shadow: 0 12px 28px rgba(15, 33, 72, 0.08);
+  background: rgba(17, 24, 39, 0.94);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: 26px;
 }
 
@@ -129,46 +146,19 @@ input, select {
 }
 
 button {
-  border: 1px solid rgba(148, 163, 184, 0.36);
-  border-radius: 13px;
+  border: none;
+  border-radius: var(--radius-sm);
   padding: 12px 14px;
   font-weight: 750;
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  transition: transform var(--motion-base), box-shadow var(--motion-base), opacity var(--motion-base);
 }
 
 button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.16);
-}
-
-.primary-btn,
-.secondary-btn {
-  background: linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%);
-  border-color: rgba(125, 211, 252, 0.58);
-  color: #f8fbff;
-}
-
-.primary-btn:hover,
-.secondary-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 24px rgba(14, 116, 217, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-}
-
-.secondary-btn {
-  background: linear-gradient(135deg, #1d4ed8 0%, #38bdf8 100%);
-}
-
-.ghost-btn {
-  background: #f8fbff;
-  border-color: rgba(59, 130, 246, 0.42);
-  color: #1d4ed8;
-}
-
-.ghost-btn:hover {
-  background: rgba(219, 234, 254, 0.96);
-  border-color: rgba(59, 130, 246, 0.56);
+  transform: translateY(-2px) scale(1.01);
+  opacity: 0.97;
+  box-shadow: 0 10px 24px rgba(8, 47, 73, 0.28);
 }
 
 .finish-btn { background: var(--amber); color: #451a03; }
@@ -244,14 +234,21 @@ button:hover {
 .queue-box {
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   padding: 16px;
   min-height: 360px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform var(--motion-base), box-shadow var(--motion-base), border-color var(--motion-base);
 }
 
-.queue-box.beginner { box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.18); }
-.queue-box.intermediate { box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.18); }
-.queue-box.advanced { box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18); }
+.queue-box.beginner { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(34, 197, 94, 0.18); }
+.queue-box.intermediate { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(56, 189, 248, 0.18); }
+.queue-box.advanced { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(245, 158, 11, 0.18); }
+
+.queue-box:hover {
+  transform: translateY(-3px) scale(1.005);
+  border-color: rgba(148, 163, 184, 0.32);
+}
 
 .queue-title-row, .court-meta-row {
   display: flex;
@@ -270,12 +267,15 @@ button:hover {
   min-width: 44px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(219, 234, 254, 0.95);
-  border: 1px solid rgba(125, 211, 252, 0.55);
-  color: #1e3a8a;
+  background: rgba(255, 255, 255, 0.09);
+  color: #e2e8f0;
   font-size: 13px;
   font-weight: 750;
   flex-shrink: 0;
+}
+
+.skill-pill {
+  color: #0f172a;
 }
 
 .queue-list, .daily-roster {
@@ -291,10 +291,12 @@ button:hover {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  background: #ffffff;
-  border: 1px solid rgba(30, 64, 175, 0.16);
-  border-radius: 14px;
+  background: #f8fbff;
+  border: 1px solid rgba(37, 99, 235, 0.26);
+  border-radius: var(--radius-sm);
   padding: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: border-color var(--motion-base), box-shadow var(--motion-base), transform var(--motion-base);
 }
 
 .roster-item {
@@ -303,14 +305,20 @@ button:hover {
 }
 
 .queue-item { cursor: grab; }
+.queue-item:hover, .roster-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
 .queue-item.selected {
-  outline: 2px solid rgba(56, 189, 248, 0.75);
-  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(37, 99, 235, 0.75);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 12px 18px rgba(37, 99, 235, 0.15);
 }
 .queue-item.dragging { opacity: 0.5; }
 
 .queue-player-name {
   font-weight: 700;
+  color: #0f172a;
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -351,8 +359,16 @@ button:hover {
 .court-card {
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   padding: 18px;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform var(--motion-base), box-shadow var(--motion-base), border-color var(--motion-base);
+}
+
+.court-card:hover {
+  transform: translateY(-4px) scale(1.007);
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: 0 22px 36px rgba(2, 6, 23, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .court-topline {
@@ -390,16 +406,26 @@ button:hover {
 .player-card {
   width: 100%;
   padding: 18px 12px;
-  border-radius: 14px;
-  color: #fff;
+  border-radius: var(--radius-sm);
+  color: #0f172a;
   font-weight: 700;
   line-height: 1.4;
+  background: #f8fbff;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  transition: transform var(--motion-base), border-color var(--motion-base), box-shadow var(--motion-base);
 }
 
-.player-card.beginner { background: rgba(34, 197, 94, 0.24); }
-.player-card.intermediate { background: rgba(56, 189, 248, 0.24); }
-.player-card.advanced { background: rgba(245, 158, 11, 0.24); }
-.player-card.mixed { background: rgba(168, 85, 247, 0.24); }
+.player-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+}
+
+.player-card.beginner, .skill-pill.beginner { background: rgba(34, 197, 94, 0.18); }
+.player-card.intermediate, .skill-pill.intermediate { background: rgba(56, 189, 248, 0.18); }
+.player-card.advanced, .skill-pill.advanced { background: rgba(245, 158, 11, 0.18); }
+.player-card.mixed, .skill-pill.mixed { background: rgba(168, 85, 247, 0.18); }
 
 .roster-tools { min-width: 260px; }
 
@@ -412,6 +438,11 @@ button:hover {
 .roster-name-group { display: grid; gap: 8px; min-width: 0; flex: 1 1 180px; }
 .roster-name { font-weight: 800; overflow-wrap: anywhere; }
 .roster-meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+
+.roster-item .roster-name,
+.roster-item .roster-meta {
+  color: #0f172a;
+}
 
 @media (max-width: 1640px) {
   .courts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

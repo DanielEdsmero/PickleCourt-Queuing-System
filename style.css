@@ -376,7 +376,7 @@ button:hover {
 
 .courts-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 22px;
 }
 
@@ -466,10 +466,6 @@ button:hover {
 .roster-item .roster-name,
 .roster-item .roster-meta {
   color: #0f172a;
-}
-
-@media (max-width: 1640px) {
-  .courts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1260px) {

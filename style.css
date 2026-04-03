@@ -1,12 +1,12 @@
 :root {
-  --bg: #0f172a;
-  --panel: #111827;
-  --panel-2: #1f2937;
-  --line: rgba(255, 255, 255, 0.08);
-  --text: #f8fafc;
-  --muted: #cbd5e1;
+  --bg: #f4f8ff;
+  --panel: #ffffff;
+  --panel-2: #f8fbff;
+  --line: rgba(30, 64, 175, 0.14);
+  --text: #0b1f44;
+  --muted: #46608f;
   --green: #22c55e;
-  --blue: #38bdf8;
+  --blue: #1d4ed8;
   --amber: #f59e0b;
   --red: #ef4444;
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
@@ -140,8 +140,8 @@ input, select {
   width: 100%;
   padding: 13px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #0b1220;
+  border: 1px solid rgba(30, 64, 175, 0.2);
+  background: #ffffff;
   color: var(--text);
 }
 
@@ -149,7 +149,8 @@ button {
   border: none;
   border-radius: var(--radius-sm);
   padding: 12px 14px;
-  font-weight: 700;
+  font-weight: 750;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   cursor: pointer;
   transition: transform var(--motion-base), box-shadow var(--motion-base), opacity var(--motion-base);
 }
@@ -160,11 +161,28 @@ button:hover {
   box-shadow: 0 10px 24px rgba(8, 47, 73, 0.28);
 }
 
-.primary-btn { background: var(--green); color: #052e16; }
-.secondary-btn { background: var(--blue); color: #082f49; }
-.ghost-btn { background: #334155; color: var(--text); }
 .finish-btn { background: var(--amber); color: #451a03; }
-.danger-btn { background: var(--red); color: #fff; }
+
+.danger-btn {
+  background: linear-gradient(135deg, #b91c3b 0%, #9f1239 100%);
+  border-color: rgba(244, 63, 94, 0.52);
+  color: #fff;
+}
+
+.danger-btn:hover {
+  background: linear-gradient(135deg, #be123c 0%, #881337 100%);
+}
+
+.reserve-btn {
+  background: linear-gradient(135deg, #1d4ed8 0%, #38bdf8 100%);
+  border-color: rgba(125, 211, 252, 0.58);
+  color: #f8fbff;
+}
+
+.reserve-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 24px rgba(14, 116, 217, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
 
 .remove-btn {
   background: rgba(239, 68, 68, 0.18);
@@ -192,7 +210,7 @@ button:hover {
   border-radius: 14px;
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.25);
-  color: #dbeafe;
+  color: #12356f;
   min-height: 54px;
   display: flex;
   align-items: center;
@@ -252,7 +270,7 @@ button:hover {
   background: rgba(255, 255, 255, 0.09);
   color: #e2e8f0;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 750;
   flex-shrink: 0;
 }
 

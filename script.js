@@ -412,7 +412,7 @@ function clearEverything() {
   updateAllCourts();
   updateDailyRosterUI();
   saveState();
-  setStatus('All queues, courts, reservation hours, and the daily player list were cleared for a new day.');
+  setStatus('Queues, courts, reservation timers, and the daily player list have been reset and are ready for new matches.');
 }
 
 function isPlayerQueuedOrOnCourt(name) {

@@ -13,7 +13,7 @@
         <p class="eyebrow">Queue + court assignment + daily roster</p>
         <h1>Pickleball Court Matchmaker</h1>
         <p class="subtitle">
-          Add players once for the day, search them anytime, re-queue them fast, manually mix levels on courts, or randomize 4 players from the same level.
+          Manage player queues, assign and track court matchups, monitor reservation time, and quickly re-queue players from the daily roster.
         </p>
       </div>
       <div class="hero-badge">
@@ -23,6 +23,19 @@
     </header>
 
     <main class="layout">
+      <section class="panel roster-panel">
+        <div class="roster-topline">
+          <div>
+            <h2>Daily Player List</h2>
+            <p>Everyone added for the day stays here. Search them and queue them again fast.</p>
+          </div>
+          <div class="roster-tools">
+            <input id="rosterSearch" type="text" placeholder="Search player name" />
+          </div>
+        </div>
+        <div id="dailyRoster" class="daily-roster"></div>
+      </section>
+
       <section class="panel controls-panel">
         <h2>Add Player to Queue</h2>
         <form id="playerForm" class="player-form">
@@ -210,18 +223,7 @@
         </div>
       </section>
 
-      <section class="panel roster-panel">
-        <div class="roster-topline">
-          <div>
-            <h2>Daily Player List</h2>
-            <p>Everyone added for the day stays here. Search them and queue them again fast.</p>
-          </div>
-          <div class="roster-tools">
-            <input id="rosterSearch" type="text" placeholder="Search player name" />
-          </div>
-        </div>
-        <div id="dailyRoster" class="daily-roster"></div>
-      </section>
+
     </main>
   </div>
 

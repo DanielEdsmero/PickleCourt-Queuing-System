@@ -96,25 +96,28 @@ h1, h2, h3 {
 
 .layout {
   display: grid;
-  grid-template-columns: 330px minmax(900px, 1fr);
+  grid-template-columns: 280px 330px minmax(760px, 1fr);
   gap: 22px;
   align-items: start;
 }
 
-.controls-panel {
+.roster-panel {
   grid-column: 1;
   grid-row: 1 / span 2;
 }
 
-.roster-panel { grid-column: 1 / -1; }
+.controls-panel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
 
 .queue-panel {
-  grid-column: 2 / -1;
+  grid-column: 3;
   grid-row: 1;
 }
 
 .courts-panel {
-  grid-column: 2 / -1;
+  grid-column: 3;
   grid-row: 2;
 }
 
@@ -239,6 +242,11 @@ button:hover {
   align-items: end;
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.roster-topline {
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .queue-columns {
@@ -443,12 +451,12 @@ button:hover {
 .player-card.advanced, .skill-pill.advanced { background: rgba(245, 158, 11, 0.18); }
 .player-card.mixed, .skill-pill.mixed { background: rgba(168, 85, 247, 0.18); }
 
-.roster-tools { min-width: 260px; }
+.roster-tools { min-width: 0; }
 
 .daily-roster {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 .roster-name-group { display: grid; gap: 8px; min-width: 0; flex: 1 1 180px; }

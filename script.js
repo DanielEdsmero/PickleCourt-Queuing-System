@@ -1,4 +1,6 @@
-const STORAGE_KEY = 'pickleball-matchmaker-v3';
+const STORAGE_KEY = 'pickleball-matchmaker-v5';
+const LEGACY_KEYS = ['pickleball-matchmaker-v4', 'pickleball-matchmaker-v3'];
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
 const COURT_NUMBERS = [1, 2, 3, 4];
 const COURT_SLOT_COUNT = 4;
 
@@ -14,7 +16,8 @@ const defaultState = {
     3: { players: [], reservationEndsAt: null },
     4: { players: [], reservationEndsAt: null }
   },
-  dailyRoster: []
+  dailyRoster: [],
+  autoFillOnFinish: true
 };
 
 let state = loadState();
@@ -26,7 +29,7 @@ const skillLevelSelect = document.getElementById('skillLevel');
 const matchLevelSelect = document.getElementById('matchLevel');
 const manualCourtSelect = document.getElementById('manualCourtSelect');
 const randomizeBtn = document.getElementById('randomizeBtn');
-const autoRandomizeBtn = document.getElementById('autoRandomizeBtn');
+const autoFillBtn = document.getElementById('autoFillBtn');
 const assignSelectedBtn = document.getElementById('assignSelectedBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
 const finishButtons = document.querySelectorAll('.finish-btn');
@@ -36,36 +39,86 @@ const totalPlayersEl = document.getElementById('totalPlayers');
 const courtSlots = document.querySelectorAll('.court-slot');
 const rosterSearchInput = document.getElementById('rosterSearch');
 const dailyRosterEl = document.getElementById('dailyRoster');
+const autoFillOnFinishInput = document.getElementById('autoFillOnFinish');
 
 function loadState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return structuredClone(defaultState);
+    if (saved) return hydrateState(JSON.parse(saved));
 
-    const parsed = JSON.parse(saved);
-    const courts = {};
-    COURT_NUMBERS.forEach((courtNumber) => {
-      const savedCourt = parsed?.courts?.[courtNumber] || {};
-      const legacyHours = Number(savedCourt?.reservationHours || 0);
-      const reservationEndsAt = Number(savedCourt?.reservationEndsAt || 0);
-      courts[courtNumber] = {
-        players: Array.isArray(savedCourt?.players) ? savedCourt.players : [],
-        reservationEndsAt: reservationEndsAt > 0 ? reservationEndsAt : (legacyHours > 0 ? Date.now() + (legacyHours * 3600 * 1000) : null)
-      };
-    });
+    for (const key of LEGACY_KEYS) {
+      const legacySaved = localStorage.getItem(key);
+      if (!legacySaved) continue;
 
-    return {
-      queues: {
-        Beginner: Array.isArray(parsed?.queues?.Beginner) ? parsed.queues.Beginner : [],
-        Intermediate: Array.isArray(parsed?.queues?.Intermediate) ? parsed.queues.Intermediate : [],
-        Advanced: Array.isArray(parsed?.queues?.Advanced) ? parsed.queues.Advanced : []
-      },
-      courts,
-      dailyRoster: Array.isArray(parsed?.dailyRoster) ? parsed.dailyRoster : []
-    };
+      const legacyParsed = JSON.parse(legacySaved);
+      if (key === 'pickleball-matchmaker-v4') {
+        return hydrateState(migrateV4(legacyParsed));
+      }
+
+      return hydrateState(legacyParsed);
+    }
+
+    return structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
+}
+
+function migrateV4(legacy) {
+  const migrated = {
+    queues: structuredClone(defaultState.queues),
+    courts: legacy?.courts,
+    dailyRoster: legacy?.dailyRoster,
+    autoFillOnFinish: typeof legacy?.autoFillOnFinish === 'boolean' ? legacy.autoFillOnFinish : true
+  };
+
+  const singleQueue = Array.isArray(legacy?.queue) ? legacy.queue : [];
+  singleQueue.forEach((player) => {
+    const level = LEVELS.includes(player.level) ? player.level : 'Beginner';
+    migrated.queues[level].push({
+      ...player,
+      level,
+      queuedAt: Number(player.queuedAt || Date.now())
+    });
+  });
+
+  return migrated;
+}
+
+function hydrateState(parsed) {
+  const courts = {};
+
+  COURT_NUMBERS.forEach((courtNumber) => {
+    const savedCourt = parsed?.courts?.[courtNumber] || {};
+    const legacyHours = Number(savedCourt?.reservationHours || 0);
+    const reservationEndsAt = Number(savedCourt?.reservationEndsAt || 0);
+
+    courts[courtNumber] = {
+      players: Array.isArray(savedCourt?.players) ? savedCourt.players : [],
+      reservationEndsAt: reservationEndsAt > 0 ? reservationEndsAt : (legacyHours > 0 ? Date.now() + (legacyHours * 3600 * 1000) : null)
+    };
+  });
+
+  const queues = {
+    Beginner: Array.isArray(parsed?.queues?.Beginner) ? parsed.queues.Beginner : [],
+    Intermediate: Array.isArray(parsed?.queues?.Intermediate) ? parsed.queues.Intermediate : [],
+    Advanced: Array.isArray(parsed?.queues?.Advanced) ? parsed.queues.Advanced : []
+  };
+
+  LEVELS.forEach((level) => {
+    queues[level] = queues[level].map((player) => ({
+      ...player,
+      level,
+      queuedAt: Number(player.queuedAt || Date.now())
+    }));
+  });
+
+  return {
+    queues,
+    courts,
+    dailyRoster: Array.isArray(parsed?.dailyRoster) ? parsed.dailyRoster : [],
+    autoFillOnFinish: typeof parsed?.autoFillOnFinish === 'boolean' ? parsed.autoFillOnFinish : true
+  };
 }
 
 function saveState() {
@@ -89,8 +142,12 @@ function generateId() {
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function getAllQueuedPlayers() {
+  return LEVELS.flatMap((level) => state.queues[level]);
+}
+
 function getAllActivePlayers() {
-  const queued = Object.values(state.queues).flat();
+  const queued = getAllQueuedPlayers();
   const onCourts = Object.values(state.courts).flatMap((court) => court.players).filter(Boolean);
   return [...queued, ...onCourts];
 }
@@ -100,16 +157,16 @@ function isPlayerActiveByName(name) {
 }
 
 function findPlayerInQueues(playerId) {
-  for (const level of Object.keys(state.queues)) {
-    const player = state.queues[level].find((p) => p.id === playerId);
+  for (const level of LEVELS) {
+    const player = state.queues[level].find((entry) => entry.id === playerId);
     if (player) return player;
   }
   return null;
 }
 
 function removePlayerFromQueues(playerId) {
-  Object.keys(state.queues).forEach((level) => {
-    state.queues[level] = state.queues[level].filter((p) => p.id !== playerId);
+  LEVELS.forEach((level) => {
+    state.queues[level] = state.queues[level].filter((entry) => entry.id !== playerId);
   });
   selectedQueuePlayers.delete(playerId);
 }
@@ -131,27 +188,68 @@ function getCourtLevelLabel(courtNumber) {
   return levels.length === 1 ? levels[0] : 'Mixed';
 }
 
+function renderUpcomingForLevel(level) {
+  const container = document.getElementById(`upcoming-${level}`);
+  container.innerHTML = '';
+
+  const queue = state.queues[level];
+  if (queue.length === 0) return;
+
+  const groups = [];
+  for (let i = 0; i < queue.length; i += COURT_SLOT_COUNT) {
+    groups.push(queue.slice(i, i + COURT_SLOT_COUNT));
+  }
+
+  groups.forEach((group, index) => {
+    const card = document.createElement('div');
+    card.className = 'upcoming-card';
+
+    const title = document.createElement('h4');
+    title.textContent = `Box ${index + 1}`;
+
+    const list = document.createElement('ol');
+    group.forEach((player) => {
+      const item = document.createElement('li');
+      item.textContent = player.name;
+      list.appendChild(item);
+    });
+
+    card.appendChild(title);
+    card.appendChild(list);
+
+    if (group.length < COURT_SLOT_COUNT) {
+      const waiting = document.createElement('p');
+      waiting.className = 'mini-note';
+      waiting.textContent = `${COURT_SLOT_COUNT - group.length} more needed`;
+      card.appendChild(waiting);
+    }
+
+    container.appendChild(card);
+  });
+}
+
 function updateQueueUI() {
   let total = 0;
 
-  Object.keys(state.queues).forEach((level) => {
-    const queueList = document.getElementById(`queue-${level}`);
-    const countPill = document.getElementById(`count-${level}`);
-    const players = state.queues[level];
+  LEVELS.forEach((level) => {
+    const queue = state.queues[level];
+    const listEl = document.getElementById(`queue-${level}`);
+    const countEl = document.getElementById(`count-${level}`);
+    listEl.innerHTML = '';
 
-    total += players.length;
-    countPill.textContent = players.length;
-    queueList.innerHTML = '';
+    countEl.textContent = queue.length;
+    total += queue.length;
 
-    if (players.length === 0) {
+    if (queue.length === 0) {
       const empty = document.createElement('li');
       empty.className = 'empty-state';
       empty.textContent = 'No players queued.';
-      queueList.appendChild(empty);
+      listEl.appendChild(empty);
+      renderUpcomingForLevel(level);
       return;
     }
 
-    players.forEach((player, index) => {
+    queue.forEach((player, index) => {
       const item = document.createElement('li');
       item.className = `queue-item ${selectedQueuePlayers.has(player.id) ? 'selected' : ''}`.trim();
       item.draggable = true;
@@ -176,8 +274,8 @@ function updateQueueUI() {
 
       const removeBtn = document.createElement('button');
       removeBtn.className = 'remove-btn';
-      removeBtn.textContent = 'Remove';
       removeBtn.type = 'button';
+      removeBtn.textContent = 'Remove';
       removeBtn.addEventListener('click', () => {
         removePlayerFromQueues(player.id);
         updateQueueUI();
@@ -188,35 +286,13 @@ function updateQueueUI() {
       actions.appendChild(removeBtn);
       item.appendChild(nameSpan);
       item.appendChild(actions);
-      queueList.appendChild(item);
+      listEl.appendChild(item);
     });
+
+    renderUpcomingForLevel(level);
   });
 
   totalPlayersEl.textContent = total;
-}
-
-function updateCourtUI(courtNumber) {
-  const court = state.courts[courtNumber];
-  const courtBoard = document.getElementById(`court${courtNumber}`);
-  const levelBadge = document.getElementById(`court${courtNumber}Level`);
-  const hoursBadge = document.getElementById(`court${courtNumber}Hours`);
-  const slots = courtBoard.querySelectorAll('.court-slot');
-
-  const label = getCourtLevelLabel(courtNumber);
-  levelBadge.textContent = label;
-  levelBadge.className = `court-level ${skillClassName(label)}`.trim();
-  const remainingSeconds = getReservationSecondsRemaining(court);
-  hoursBadge.textContent = `Reservation: ${formatCountdown(remainingSeconds)}`;
-
-  slots.forEach((slot, index) => {
-    const player = court.players[index];
-    if (!player) {
-      slot.textContent = 'Waiting';
-      return;
-    }
-
-    slot.innerHTML = `<div class="player-card ${skillClassName(player.level)}">${player.name}<br><small>${player.level}</small></div>`;
-  });
 }
 
 function getReservationSecondsRemaining(court, now = Date.now()) {
@@ -230,31 +306,61 @@ function formatCountdown(totalSeconds) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+function updateCourtUI(courtNumber) {
+  const court = state.courts[courtNumber];
+  const courtBoard = document.getElementById(`court${courtNumber}`);
+  const levelBadge = document.getElementById(`court${courtNumber}Level`);
+  const hoursBadge = document.getElementById(`court${courtNumber}Hours`);
+  const slots = courtBoard.querySelectorAll('.court-slot');
+
+  const label = getCourtLevelLabel(courtNumber);
+  levelBadge.textContent = label;
+  levelBadge.className = `court-level ${skillClassName(label)}`.trim();
+  hoursBadge.textContent = `Reservation: ${formatCountdown(getReservationSecondsRemaining(court))}`;
+
+  slots.forEach((slot, index) => {
+    const player = court.players[index];
+    if (!player) {
+      slot.textContent = 'Waiting';
+      return;
+    }
+
+    slot.innerHTML = `<div class="player-card ${skillClassName(player.level)}">${player.name}<br><small>${player.level}</small></div>`;
+  });
+}
+
 function updateAllCourts() {
   COURT_NUMBERS.forEach((courtNumber) => updateCourtUI(courtNumber));
 }
 
 function getOpenCourtNumber() {
-  const openCourt = COURT_NUMBERS.find((courtNumber) => state.courts[courtNumber].players.filter(Boolean).length === 0);
-  if (openCourt) return openCourt;
-  return null;
+  return COURT_NUMBERS.find((courtNumber) => state.courts[courtNumber].players.filter(Boolean).length === 0) || null;
 }
 
 function getFirstOpenSlot(courtNumber) {
-  const courtPlayers = state.courts[courtNumber].players;
+  const players = state.courts[courtNumber].players;
   for (let i = 0; i < COURT_SLOT_COUNT; i += 1) {
-    if (!courtPlayers[i]) return i;
+    if (!players[i]) return i;
   }
   return -1;
 }
 
-function shuffle(array) {
-  const cloned = [...array];
-  for (let i = cloned.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
-  }
-  return cloned;
+function getNextEligibleLevel() {
+  const eligible = LEVELS
+    .filter((level) => state.queues[level].length >= COURT_SLOT_COUNT)
+    .map((level) => ({ level, queuedAt: state.queues[level][0].queuedAt || Number.MAX_SAFE_INTEGER }));
+
+  if (eligible.length === 0) return null;
+  eligible.sort((a, b) => a.queuedAt - b.queuedAt);
+  return eligible[0].level;
+}
+
+function canAddPlayerToCourt(player, courtNumber) {
+  const courtPlayers = state.courts[courtNumber].players.filter(Boolean);
+  if (courtPlayers.length === 0) return true;
+
+  const courtLevel = getCourtLevelLabel(courtNumber);
+  return courtLevel === player.level;
 }
 
 function ensurePlayerInDailyRoster(name, level) {
@@ -284,7 +390,7 @@ function addQueuePlayer(name, level) {
   }
 
   if (isPlayerActiveByName(normalized)) {
-    setStatus('That player name already exists in queue or on a court.');
+    setStatus('That player already exists in queue or on a court.');
     return false;
   }
 
@@ -293,13 +399,14 @@ function addQueuePlayer(name, level) {
   state.queues[level].push({
     id: generateId(),
     name: normalized,
-    level
+    level,
+    queuedAt: Date.now()
   });
 
   updateQueueUI();
   updateDailyRosterUI();
   saveState();
-  setStatus(`${normalized} added to the ${level.toLowerCase()} queue.`);
+  setStatus(`${normalized} added to ${level} queue.`);
   return true;
 }
 
@@ -316,6 +423,11 @@ function addPlayerToCourt(player, courtNumber, specificSlot = null) {
     return false;
   }
 
+  if (!canAddPlayerToCourt(player, courtNumber)) {
+    setStatus(`Court ${courtNumber} already has ${getCourtLevelLabel(courtNumber)} players. Choose a ${player.level} court.`);
+    return false;
+  }
+
   state.courts[courtNumber].players[openSlot] = player;
   removePlayerFromQueues(player.id);
   updateQueueUI();
@@ -325,39 +437,66 @@ function addPlayerToCourt(player, courtNumber, specificSlot = null) {
   return true;
 }
 
+function autoFillOpenCourts(showStatus = true) {
+  let filledCourts = 0;
+
+  while (true) {
+    const openCourt = getOpenCourtNumber();
+    if (!openCourt) break;
+
+    const level = getNextEligibleLevel();
+    if (!level) break;
+
+    const nextGroup = state.queues[level].slice(0, COURT_SLOT_COUNT);
+    nextGroup.forEach((player) => removePlayerFromQueues(player.id));
+    state.courts[openCourt].players = nextGroup;
+    filledCourts += 1;
+  }
+
+  updateQueueUI();
+  updateAllCourts();
+  updateDailyRosterUI();
+  saveState();
+
+  if (showStatus) {
+    if (filledCourts > 0) {
+      setStatus(`Auto-filled ${filledCourts} court${filledCourts > 1 ? 's' : ''} with same-level groups.`);
+    } else {
+      setStatus('Need at least 4 same-level players in a queue and an open court to auto-fill.');
+    }
+  }
+}
+
+function shuffle(array) {
+  const cloned = [...array];
+  for (let i = cloned.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+  }
+  return cloned;
+}
+
 function randomizeMatch(level) {
   const openCourt = getOpenCourtNumber();
   if (!openCourt) {
-    setStatus('All courts are currently full. Finish a court before randomizing another match.');
+    setStatus('All courts are full. Finish a court before randomizing.');
     return;
   }
 
-  if (state.queues[level].length < 4) {
-    setStatus(`Need at least 4 ${level.toLowerCase()} players in queue to randomize a match.`);
+  if (state.queues[level].length < COURT_SLOT_COUNT) {
+    setStatus(`Need at least 4 ${level.toLowerCase()} players in queue to randomize.`);
     return;
   }
 
-  const selectedPlayers = shuffle(state.queues[level]).slice(0, 4);
+  const selectedPlayers = shuffle(state.queues[level]).slice(0, COURT_SLOT_COUNT);
   selectedPlayers.forEach((player) => removePlayerFromQueues(player.id));
 
-  state.courts[openCourt].players = [...selectedPlayers];
+  state.courts[openCourt].players = selectedPlayers;
   updateQueueUI();
   updateCourtUI(openCourt);
   updateDailyRosterUI();
   saveState();
-  setStatus(`Court ${openCourt} filled with 4 random ${level.toLowerCase()} players.`);
-}
-
-function autoRandomize() {
-  const orderedLevels = ['Beginner', 'Intermediate', 'Advanced'];
-  const foundLevel = orderedLevels.find((level) => state.queues[level].length >= 4);
-
-  if (!foundLevel) {
-    setStatus('No level has at least 4 queued players yet.');
-    return;
-  }
-
-  randomizeMatch(foundLevel);
+  setStatus(`Court ${openCourt} filled with 4 randomized ${level.toLowerCase()} players.`);
 }
 
 function assignSelectedPlayersToCourt() {
@@ -365,7 +504,7 @@ function assignSelectedPlayersToCourt() {
   const selectedPlayers = [...selectedQueuePlayers].map(findPlayerInQueues).filter(Boolean);
 
   if (selectedPlayers.length === 0) {
-    setStatus('Select at least 1 player from the queue first.');
+    setStatus('Select at least 1 player from queue first.');
     return;
   }
 
@@ -377,7 +516,7 @@ function assignSelectedPlayersToCourt() {
   });
 
   if (addedCount > 0) {
-    setStatus(`${addedCount} player${addedCount > 1 ? 's' : ''} added to Court ${courtNumber}. Mixed levels are allowed for manual placement.`);
+    setStatus(`${addedCount} player${addedCount > 1 ? 's' : ''} added to Court ${courtNumber}.`);
   }
 }
 
@@ -388,7 +527,7 @@ function addReservationHour(courtNumber) {
   court.reservationEndsAt = startFrom + (3600 * 1000);
   updateCourtUI(courtNumber);
   saveState();
-  setStatus(`Added 1 hour to Court ${courtNumber}'s reservation timer.`);
+  setStatus(`Added 1 hour to Court ${courtNumber}.`);
 }
 
 function finishCourt(courtNumber) {
@@ -398,10 +537,25 @@ function finishCourt(courtNumber) {
   }
 
   state.courts[courtNumber].players = [];
+
+  if (state.autoFillOnFinish) {
+    autoFillOpenCourts(false);
+  }
+
   updateCourtUI(courtNumber);
-  saveState();
   updateDailyRosterUI();
-  setStatus(`Court ${courtNumber} cleared.`);
+  saveState();
+
+  if (!state.autoFillOnFinish) {
+    setStatus(`Court ${courtNumber} finished. Auto-fill is off, so you can manually choose the next players.`);
+    return;
+  }
+
+  if (state.courts[courtNumber].players.filter(Boolean).length === 4) {
+    setStatus(`Court ${courtNumber} finished. Next same-level group was loaded automatically.`);
+  } else {
+    setStatus(`Court ${courtNumber} finished. Waiting for 4 same-level players to auto-load next game.`);
+  }
 }
 
 function clearEverything() {
@@ -412,16 +566,12 @@ function clearEverything() {
   updateAllCourts();
   updateDailyRosterUI();
   saveState();
-  setStatus('Queues, courts, reservation timers, and the daily player list have been reset and are ready for new matches.');
-}
-
-function isPlayerQueuedOrOnCourt(name) {
-  return isPlayerActiveByName(name);
+  setStatus('Queues, courts, reservation timers, and daily player list were reset.');
 }
 
 function queueAgainFromRoster(rosterPlayer) {
-  if (isPlayerQueuedOrOnCourt(rosterPlayer.name)) {
-    setStatus(`${rosterPlayer.name} is already active in queue or on a court.`);
+  if (isPlayerActiveByName(rosterPlayer.name)) {
+    setStatus(`${rosterPlayer.name} is already active in queue or on court.`);
     return;
   }
 
@@ -455,7 +605,7 @@ function updateDailyRosterUI() {
 
     const meta = document.createElement('div');
     meta.className = 'roster-meta';
-    const active = isPlayerQueuedOrOnCourt(player.name) ? 'Active now' : 'Not in queue';
+    const active = isPlayerActiveByName(player.name) ? 'Active now' : 'Not in queue';
     meta.textContent = `${active} • Last added ${player.lastSeen}`;
 
     const pill = document.createElement('span');
@@ -532,7 +682,7 @@ playerForm.addEventListener('submit', (event) => {
 });
 
 randomizeBtn.addEventListener('click', () => randomizeMatch(matchLevelSelect.value));
-autoRandomizeBtn.addEventListener('click', autoRandomize);
+autoFillBtn.addEventListener('click', () => autoFillOpenCourts(true));
 assignSelectedBtn.addEventListener('click', assignSelectedPlayersToCourt);
 clearAllBtn.addEventListener('click', clearEverything);
 
@@ -545,6 +695,15 @@ reserveButtons.forEach((button) => {
 });
 
 rosterSearchInput.addEventListener('input', updateDailyRosterUI);
+
+autoFillOnFinishInput.checked = state.autoFillOnFinish;
+autoFillOnFinishInput.addEventListener('change', () => {
+  state.autoFillOnFinish = autoFillOnFinishInput.checked;
+  saveState();
+  setStatus(state.autoFillOnFinish
+    ? 'Auto-fill on court finish is ON.'
+    : 'Auto-fill on court finish is OFF. You can manually choose players.');
+});
 
 courtSlots.forEach((slot) => {
   slot.addEventListener('dragover', (event) => {
@@ -573,7 +732,7 @@ courtSlots.forEach((slot) => {
     const added = addPlayerToCourt(player, courtNumber, slotIndex);
 
     if (added) {
-      setStatus(`${player.name} added to Court ${courtNumber}. Mixed levels are allowed for manual drag-and-drop.`);
+      setStatus(`${player.name} added to Court ${courtNumber}.`);
     }
   });
 });

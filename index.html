@@ -13,7 +13,7 @@
         <p class="eyebrow">Queue + court assignment + daily roster</p>
         <h1>Pickleball Court Matchmaker</h1>
         <p class="subtitle">
-          Manage player queues, assign and track court matchups, monitor reservation time, and quickly re-queue players from the daily roster.
+          Add players by skill level. The app auto-builds 4-player boxes and automatically refills courts with same-level players first-come-first-serve.
         </p>
       </div>
       <div class="hero-badge">
@@ -57,9 +57,9 @@
         </form>
 
         <div class="action-group">
-          <h3>Randomize Match</h3>
+          <h3>Queue Controls</h3>
           <label>
-            <span>Choose level</span>
+            <span>Randomize level</span>
             <select id="matchLevel">
               <option value="Beginner">Beginner</option>
               <option value="Intermediate">Intermediate</option>
@@ -68,7 +68,7 @@
           </label>
           <div class="button-row wrap-row">
             <button id="randomizeBtn" class="secondary-btn" type="button">Randomize 4 Same-Level Players</button>
-            <button id="autoRandomizeBtn" class="ghost-btn" type="button">Auto Pick Available Level</button>
+            <button id="autoFillBtn" class="ghost-btn" type="button">Auto Fill Open Courts (By Level)</button>
           </div>
         </div>
 
@@ -84,9 +84,18 @@
             </select>
           </label>
           <button id="assignSelectedBtn" class="secondary-btn" type="button">Add Selected Players to Court</button>
-          <p class="mini-note">Manual add and drag-and-drop can mix Beginner, Intermediate, and Advanced players on the same court.</p>
+          <p class="mini-note">Skill labels are enforced for auto-fill and randomize so players match against their own level.</p>
         </div>
 
+
+        <div class="action-group small-gap">
+          <h3>Automation</h3>
+          <label class="inline-toggle">
+            <input id="autoFillOnFinish" type="checkbox" checked />
+            <span>Auto-fill next same-level game when a court is finished</span>
+          </label>
+          <p class="mini-note">Turn this off when players want to choose who they play with before assigning to court.</p>
+        </div>
         <div class="action-group small-gap">
           <h3>Day Controls</h3>
           <div class="button-row wrap-row">
@@ -105,7 +114,7 @@
         <div class="queue-header">
           <div>
             <h2>Queue System</h2>
-            <p>Click players to select them, or drag them into any empty court square.</p>
+            <p>Players are grouped by skill. Match boxes are generated automatically in groups of 4 per level.</p>
           </div>
         </div>
 
@@ -116,6 +125,7 @@
               <span id="count-Beginner" class="count-pill">0</span>
             </div>
             <ul id="queue-Beginner" class="queue-list"></ul>
+            <div id="upcoming-Beginner" class="upcoming-stack"></div>
           </div>
 
           <div class="queue-box intermediate">
@@ -124,6 +134,7 @@
               <span id="count-Intermediate" class="count-pill">0</span>
             </div>
             <ul id="queue-Intermediate" class="queue-list"></ul>
+            <div id="upcoming-Intermediate" class="upcoming-stack"></div>
           </div>
 
           <div class="queue-box advanced">
@@ -132,6 +143,7 @@
               <span id="count-Advanced" class="count-pill">0</span>
             </div>
             <ul id="queue-Advanced" class="queue-list"></ul>
+            <div id="upcoming-Advanced" class="upcoming-stack"></div>
           </div>
         </div>
       </section>
@@ -140,7 +152,7 @@
         <div class="courts-header">
           <div>
             <h2>Courts</h2>
-            <p>Randomize uses same-level players only. Manual add can be mixed.</p>
+            <p>When a court is finished, the app auto-loads the next queued group of the same skill level.</p>
           </div>
         </div>
 
@@ -222,8 +234,6 @@
           </div>
         </div>
       </section>
-
-
     </main>
   </div>
 

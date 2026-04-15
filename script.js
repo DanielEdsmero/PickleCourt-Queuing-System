@@ -40,6 +40,8 @@ const courtSlots = document.querySelectorAll('.court-slot');
 const rosterSearchInput = document.getElementById('rosterSearch');
 const dailyRosterEl = document.getElementById('dailyRoster');
 const autoFillOnFinishInput = document.getElementById('autoFillOnFinish');
+const quickRequeueSearchInput = document.getElementById('quickRequeueSearch');
+const focusRosterBtn = document.getElementById('focusRosterBtn');
 
 function loadState() {
   try {
@@ -695,6 +697,25 @@ reserveButtons.forEach((button) => {
 });
 
 rosterSearchInput.addEventListener('input', updateDailyRosterUI);
+
+focusRosterBtn.addEventListener('click', () => {
+  const query = normalizeName(quickRequeueSearchInput.value || '');
+  rosterSearchInput.value = query;
+  updateDailyRosterUI();
+  document.querySelector('.roster-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!query) {
+    setStatus('Showing all players in Daily Player List.');
+  } else {
+    setStatus(`Filtered Daily Player List by "${query}".`);
+  }
+});
+
+quickRequeueSearchInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    focusRosterBtn.click();
+  }
+});
 
 autoFillOnFinishInput.checked = state.autoFillOnFinish;
 autoFillOnFinishInput.addEventListener('change', () => {

@@ -32,9 +32,10 @@ h1, h2, h3 {
 }
 
 .app-shell {
-  max-width: 1680px;
+  max-width: none;
   margin: 0 auto;
-  padding: 34px 34px 48px;
+  padding: 20px 24px 32px;
+  width: 100%;
 }
 
 .hero {
@@ -96,7 +97,7 @@ h1, h2, h3 {
 
 .layout {
   display: grid;
-  grid-template-columns: 280px 330px minmax(760px, 1fr);
+  grid-template-columns: minmax(520px, 1.4fr) minmax(360px, 1fr) minmax(960px, 2.2fr);
   gap: 22px;
   align-items: start;
 }
@@ -132,6 +133,16 @@ h1, h2, h3 {
 .player-form, .action-group { display: grid; gap: 16px; }
 .small-gap { margin-top: 24px; }
 label { display: grid; gap: 7px; }
+
+.inline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inline-toggle input {
+  width: auto;
+}
 
 label span, .roster-topline p, .queue-header p, .courts-header p, .mini-note {
   color: var(--muted);
@@ -255,6 +266,29 @@ button:hover {
   gap: 18px;
 }
 
+
+
+.upcoming-card {
+  background: #f8fbff;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.upcoming-card h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.upcoming-card ol {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: #1e293b;
+  font-size: 13px;
+}
+
 .queue-box {
   background: var(--panel-2);
   border: 1px solid var(--line);
@@ -272,6 +306,12 @@ button:hover {
 .queue-box:hover {
   transform: translateY(-3px) scale(1.005);
   border-color: rgba(148, 163, 184, 0.32);
+}
+
+.upcoming-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .queue-title-row, .court-meta-row {
@@ -363,7 +403,7 @@ button:hover {
 .roster-actions {
   width: 100%;
   justify-content: flex-start;
-  flex: 1 1 320px;
+  flex: 1 1 auto;
 }
 
 .empty-state {
@@ -455,8 +495,11 @@ button:hover {
 
 .daily-roster {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  max-height: 74vh;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .roster-name-group { display: grid; gap: 8px; min-width: 0; flex: 1 1 180px; }
@@ -482,4 +525,13 @@ button:hover {
   .hero { flex-direction: column; align-items: start; }
   .button-row, .roster-actions { flex-direction: column; align-items: stretch; }
   .court-board { grid-template-columns: 1fr; }
+}
+
+
+@media (max-width: 1650px) {
+  .daily-roster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1100px) {
+  .daily-roster { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; }
 }

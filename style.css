@@ -133,6 +133,16 @@ h1, h2, h3 {
 .small-gap { margin-top: 24px; }
 label { display: grid; gap: 7px; }
 
+.inline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inline-toggle input {
+  width: auto;
+}
+
 label span, .roster-topline p, .queue-header p, .courts-header p, .mini-note {
   color: var(--muted);
 }
@@ -255,6 +265,29 @@ button:hover {
   gap: 18px;
 }
 
+
+
+.upcoming-card {
+  background: #f8fbff;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.upcoming-card h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.upcoming-card ol {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: #1e293b;
+  font-size: 13px;
+}
+
 .queue-box {
   background: var(--panel-2);
   border: 1px solid var(--line);
@@ -272,6 +305,12 @@ button:hover {
 .queue-box:hover {
   transform: translateY(-3px) scale(1.005);
   border-color: rgba(148, 163, 184, 0.32);
+}
+
+.upcoming-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .queue-title-row, .court-meta-row {
